@@ -24,12 +24,16 @@ pub fn App(cx: Scope) -> impl IntoView {
                     <Route path="/" view=move |cx| view! { cx, <Outlet /> }>
                         <Route path=""
                             view=move |cx| view! { cx, <HomePage /> }
-                        />                            
+                        />
                     </Route>
                 </Routes>
             </main>
         </Router>
     }
+}
+
+async fn example() -> String {
+    return "example".to_string();
 }
 
 /// WITH THIS IT RENDERS AGAIN
@@ -38,14 +42,15 @@ fn HomePage(cx: Scope) -> impl IntoView {
     // Creates a reactive value to update the button
     let counter = create_rw_signal(cx, 1);
 
+    let rs = create_resource(cx, move || counter.get(), move |_| example());
+
     view! { cx,
         <h1>"hydration error with outlet!"</h1>
         <div class="w-full" >
             //BODY
             <button on:click=move |_| counter.update(|n| *n += 1)>"Refresh"</button>
             <Suspense fallback=move || view! { cx, <p>"Loading (Suspense Fallback)..."</p> }>
-            {move || { view! { cx, <p>"Loading..."</p> }
-            }}
+            {move || { rs.read().map(|s| view! { cx, <p>{s}</p> })}}
             </Suspense>
         </div>
     }
